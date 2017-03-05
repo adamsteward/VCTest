@@ -27,7 +27,7 @@ var fragmentShaderText =
 '}'
 ].join('\n');
 
-var InitDemo = function() {
+var InitDemo = function(event) {
 console.log('This is working');
 
 var canvas = document.getElementById('canvasgl');
@@ -79,44 +79,48 @@ var gl = canvas.getContext('webgl');
 	}
 
 	//Create Buffer
+	var c = [0, 0, 0];
+	var dx = 2;
+	var dy = 2;
+	var dz = 2;
 
 	var boxVertices = 
-	[ // X, Y, Z           R, G, B
+		[ // X, Y, Z           R, G, B
 		// Top
-		-1.0, 1.0, -1.0,    0.5, 0.5, 0.5,
-		-1.0, 1.0, 1.0,     0.5, 0.5, 0.5,
-		 1.0, 1.0, 1.0,     0.5, 0.5, 0.5,
-		 1.0, 1.0, -1.0,    0.5, 0.5, 0.5,
+		c[0]-dx/2, c[1]+dy/2, c[2]-dz/2,   0.5, 0.5, 0.5,
+		c[0]-dx/2, c[1]+dy/2, c[2]+dz/2,   0.5, 0.5, 0.5,
+		c[0]+dx/2, c[1]+dy/2, c[2]+dz/2,   0.5, 0.5, 0.5,
+		c[0]+dx/2, c[1]+dy/2, c[2]-dz/2,   0.5, 0.5, 0.5,
 
 		// Left
-		-1.0,  1.0,  1.0,   0.70, 0.25, 0.5,
-		-1.0, -1.0,  1.0,   0.70, 0.25, 0.5,
-		-1.0, -1.0, -1.0,   0.70, 0.25, 0.5,
-		-1.0,  1.0, -1.0,   0.70, 0.25, 0.5,
+		c[0]-dx/2, c[1]+dy/2, c[2]+dz/2,   0.70, 0.25, 0.5,
+		c[0]-dx/2, c[1]-dy/2, c[2]+dz/2,   0.70, 0.25, 0.5,
+		c[0]-dx/2, c[1]-dy/2, c[2]-dz/2,   0.70, 0.25, 0.5,
+		c[0]-dx/2, c[1]+dy/2, c[2]-dz/2,   0.70, 0.25, 0.5,
 
 		// Right
-		1.0,  1.0,  1.0,    0.25, 0.25, 0.75,
-		1.0, -1.0,  1.0,    0.25, 0.25, 0.75,
-		1.0, -1.0, -1.0,    0.25, 0.25, 0.75,
-		1.0,  1.0, -1.0,    0.25, 0.25, 0.75,
+		c[0]+dx/2, c[1]+dy/2, c[2]+dz/2,   0.25, 0.25, 0.75,
+		c[0]+dx/2, c[1]-dy/2, c[2]+dz/2,   0.25, 0.25, 0.75,
+		c[0]+dx/2, c[1]-dy/2, c[2]-dz/2,   0.25, 0.25, 0.75,
+		c[0]+dx/2, c[1]+dy/2, c[2]-dz/2,   0.25, 0.25, 0.75,
 
 		// Front
-		 1.0,  1.0, 1.0,    1.0, 0.0, 0.15,
-		 1.0, -1.0, 1.0,    1.0, 0.0, 0.15,
-		-1.0, -1.0, 1.0,    1.0, 0.0, 0.15,
-		-1.0,  1.0, 1.0,    1.0, 0.0, 0.15,
+		c[0]+dx/2, c[1]+dy/2, c[2]+dz/2,   1.0, 0.0, 0.15,
+		c[0]+dx/2, c[1]-dy/2, c[2]+dz/2,   1.0, 0.0, 0.15,
+		c[0]-dx/2, c[1]-dy/2, c[2]+dz/2,   1.0, 0.0, 0.15,
+		c[0]-dx/2, c[1]+dy/2, c[2]+dz/2,   1.0, 0.0, 0.15,
 
 		// Back
-		 1.0,  1.0, -1.0,   0.0, 1.0, 0.15,
-		 1.0, -1.0, -1.0,   0.0, 1.0, 0.15,
-		-1.0, -1.0, -1.0,   0.0, 1.0, 0.15,
-		-1.0,  1.0, -1.0,   0.0, 1.0, 0.15,
+		c[0]+dx/2, c[1]+dy/2, c[2]-dz/2,   0.0, 1.0, 0.15,
+		c[0]+dx/2, c[1]-dy/2, c[2]-dz/2,   0.0, 1.0, 0.15,
+		c[0]-dx/2, c[1]-dy/2, c[2]-dz/2,   0.0, 1.0, 0.15,
+		c[0]-dx/2, c[1]+dy/2, c[2]-dz/2,   0.0, 1.0, 0.15,
 
 		// Bottom
-		-1.0, -1.0, -1.0,   0.35, 0.5, 1.0,
-		-1.0, -1.0, 1.0,    0.35, 0.5, 1.0,
-		1.0, -1.0, 1.0,     0.35, 0.5, 1.0,
-		1.0, -1.0, -1.0,    0.35, 0.5, 1.0,
+		c[0]-dx/2, c[1]-dy/2, c[2]-dz/2,   0.35, 0.5, 1.0,
+		c[0]-dx/2, c[1]-dy/2, c[2]+dz/2,   0.35, 0.5, 1.0,
+		c[0]+dx/2, c[1]-dy/2, c[2]+dz/2,   0.35, 0.5, 1.0,
+		c[0]+dx/2, c[1]-dy/2, c[2]-dz/2,   0.35, 0.5, 1.0,
 	];
 
 
@@ -213,91 +217,156 @@ function normal(p1, p2, p3) {
 	return out;
 }
 
-
-
 //Main Render Loop
 var identityMatrix = new Float32Array(16);
 mat4.identity(identityMatrix);
 
 //Set up Mouse Listener
-
 mx = 0;
 my = 0;
-angleX = 0;
-angleY = 0;
+var angleX = 0;
+var angleY = 0;
+var scale = 1;
+var transx = 0;
+var transy = 0;
+var transz = 0;
+var old_transx = 0;
+var old_transy = 0;
+var hor = 0;
+var ver = 0;
+var harold = 0;
+var varold = 0;
+
 var x_vec = 0;
 var y_vec = 0;
-   	var pixels = new Uint8Array(4);
-    mousedown = false;   
+var pixels = new Uint8Array(4);
+var mousedown = false;
 
 
-
-var loop = function (event) {
-	canvas.addEventListener('mousedown', loop, false);
+	c[0] = c[0]+1;
 	canvas.addEventListener('mousedown', initMove, false);
-	canvas.addEventListener('mousedown', extendFace, false);
-	document.addEventListener('keydown', extendFace, false);
-    document.addEventListener('keypress', extendFace, false);
-    document.addEventListener('keydown', move, false);
-    document.addEventListener('keypress', move, true);
-    canvas.addEventListener('mousemove', loop,false);
+    canvas.addEventListener('keydown', move, false);
     canvas.addEventListener('mousemove', move);
     canvas.addEventListener('mousemove', extendFace, false);
     canvas.addEventListener('mouseup', stopMove);
-	var mx = 0;
-	var my = 0;
+
+//Transformation matrices 4x4
+
+function trans(sx, sy) {
+	transx = sx;
+	transy = sy;
+}
+
 	 function stopMove() {
         mousedown = false;
+        harold = transx;
+    	varold = transy;  
+
     }
 
     // Initialize the movement
     function initMove(event) {
-        //console.log('initmove');
         mousedown = true;
-        event.ctrlKey = true;
         mx = event.clientX;
         my = event.clientY;
+        gl.readPixels(mx, my, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        
     }
 
     function move(event) {
-    	if(!mousedown) {
+    	//rotate
+    	if(mousedown && event.ctrlKey) {
+    		//console.log("move");
     	  	angleX = (event.clientX - mx)/100;//+ event.clientX;
     	  	angleY = (event.clientY - my)/100;
- 		x_vec = event.clientX / Math.sqrt(Math.pow(event.clientY, 2) + Math.pow(event.clientY,2));
- 		y_vec = event.clientY / Math.sqrt(Math.pow(event.clientX, 2) + Math.pow(event.clientY,2));
     	  }
+    	  //translate
+
+    	  if (mousedown && event.altKey) {
+    	  	hor = mx - event.clientX;
+            ver = my - event.clientY;
+     	 
+    	  	 transx = (hor)/125 + harold;
+    	     transy = (ver)/125 + varold;   	     
+    	   
+    	  }
+    	  //zoom
+    	  if (mousedown && event.shiftKey) {
+    	  	if(event.clientY-my < 0) {
+    	  	scale = scale*1.1;
+    	  	}
+    	  	if(event.clientY-my > 0) {
+    	  		scale = scale * 0.9;
+    	  	}
+
+    	  }
+    	  		var translate = math.matrix( 
+				 [[1,		0, 	0, 		0],
+			  [	   0,  		1, 	0,   	0],
+			  [	   0, 		0, 	1, 		0],
+			  [	   transx,	 	transy, 	transz, 		1]]);
+
+
+			var scale_mat = math.matrix(
+			[ [    scale,	0, 		0, 			0],
+			  [	   0,  		scale, 	0,  	 	0],
+			  [	   0, 		0, 		scale, 		0],
+			  [	   0,	 	0, 		0, 			1]]);
+    	  	var rotatex = math.matrix(
+			  [ [  1,		0, 					0, 						0],
+			  [	   0,  		Math.cos(angleY),  -Math.sin(angleY),    	0],
+			  [	   0, 		Math.sin(angleY), 	Math.cos(angleY), 		0],
+			  [	   0,	 	0, 					0, 						1]]);
+
+
+			var rotatey = math.matrix(
+			[ [  Math.cos(angleX),			0, 		Math.sin(angleX), 	0],
+			  [	   0,  						1,   	0, 				   	0],
+			  [	  -Math.sin(angleX), 		0, 		Math.cos(angleX), 	0],
+			  [	   0,					 	0,		0, 					1]]);
+			var temp = math.multiply(rotatex, rotatey);
+       		temp = math.multiply(temp, scale_mat);
+   			temp_worldMatrix = math.multiply(temp, translate);
+   			k=0;
+    for (var i = 0; i<4; i++){
+    	for(var j = 0; j<4; j++){
+    		worldMatrix[k] = temp_worldMatrix.get([i,j]);
+    		k = k + 1;
+    	}
+    }
+
+			gl.uniformMatrix4fv(matWorldUniformLocation, gl.FALSE, worldMatrix);
+	
+    	  	gl.clearColor(0.75, 0.85, 0.8, 1.0);
+			gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+			gl.drawElements(gl.TRIANGLES, boxIndices.length, gl.UNSIGNED_SHORT, 0);
+
+
     }
 
     function extendFace(event) {
-if (mousedown) {
-   		gl.readPixels(mx, my, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-   		//console.log(pixels); // Uint8Array
+if (mousedown) { 
    		r = (pixels[0]/255).toFixed(2);
 	   	g = (pixels[1]/255).toFixed(2);
 		b = (pixels[2]/255).toFixed(2);
 
 		var index = 0;
 		for (var j = 0; j < boxVertices.length/6; j++) {
-			//console.log('for');
 		r1 = boxVertices[6*j+3].toFixed(2);
 		b1 = boxVertices[6*j+4].toFixed(2);
 		g1 = boxVertices[6*j+5].toFixed(2);
-		//console.log(r1 == r);
-		//console.log(r1==r && g1==g && b1 == b);
+
 			if(r1==r) {
-				//console.log('if');
 				index = (j*6)+3;
 				break;
 			}
 		}
-		//console.log(index);
 	  	p1 = [boxVertices[index - 3], boxVertices[index - 2], boxVertices[index - 1]];
 		p2 = [boxVertices[index + 3], boxVertices[index + 4], boxVertices[index + 5]];
 		p3 = [boxVertices[index + 9], boxVertices[index + 10], boxVertices[index + 11]];
 		p4 = [boxVertices[index + 15], boxVertices[index + 16], boxVertices[index + 17]];
 
 		var out = normal(p1, p3, p2);
-		//console.log(out);
 
     for (var i = 0; i < boxVertices.length/6; ++i) {
 		x = boxVertices[6*i];
@@ -322,18 +391,10 @@ if (mousedown) {
 	}
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(boxVertices), gl.STATIC_DRAW);
 }
-   // gl.drawElements(gl.TRIANGLES, boxIndices.length, gl.UNSIGNED_SHORT, 0);
 }};
-    	//console.log();  
- 	//console.log(x_vec + ' ' + y_vec);
-	mat4.rotate(worldMatrix, identityMatrix, angleX, [x_vec,y_vec,0]);
-	gl.uniformMatrix4fv(matWorldUniformLocation, gl.FALSE, worldMatrix);
-	//gl.uniformMatrix4fv(matWorldUniformLocation, gl.FALSE, worldMatrix);
-	
+
+
 	gl.clearColor(0.75, 0.85, 0.8, 1.0);
 	gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
 	gl.drawElements(gl.TRIANGLES, boxIndices.length, gl.UNSIGNED_SHORT, 0);
-	requestAnimationFrame(loop);	
-};
-requestAnimationFrame(loop);	
 };
