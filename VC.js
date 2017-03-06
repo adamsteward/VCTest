@@ -217,11 +217,9 @@ function normal(p1, p2, p3) {
 	return out;
 }
 
-//Main Render Loop
-var identityMatrix = new Float32Array(16);
-mat4.identity(identityMatrix);
 
-//Set up Mouse Listener
+
+//Initialize Variables
 mx = 0;
 my = 0;
 var angleX = 0;
@@ -236,32 +234,38 @@ var hor = 0;
 var ver = 0;
 var harold = 0;
 var varold = 0;
+var angxold = 0;
+var angyold = 0;
+var center = [0,0,0];
+var inCent = [0,0,0];
+var outCent = [0,0,0];
+var mouse_x = 0;
+var mouse_y = 0;
 
 var x_vec = 0;
 var y_vec = 0;
 var pixels = new Uint8Array(4);
 var mousedown = false;
 
-
-	c[0] = c[0]+1;
+//Mouse Listeners
 	canvas.addEventListener('mousedown', initMove, false);
     canvas.addEventListener('keydown', move, false);
     canvas.addEventListener('mousemove', move);
     canvas.addEventListener('mousemove', extendFace, false);
     canvas.addEventListener('mouseup', stopMove);
 
-//Transformation matrices 4x4
+var identityMatrix = new Float32Array(16);
+mat4.identity(identityMatrix);
 
-function trans(sx, sy) {
-	transx = sx;
-	transy = sy;
-}
+//Main Move Functions
 
+//Stop Moving
 	 function stopMove() {
         mousedown = false;
         harold = transx;
     	varold = transy;  
-
+    	angxold = angleX;
+    	angyold = angleY;
     }
 
     // Initialize the movement
@@ -269,7 +273,9 @@ function trans(sx, sy) {
         mousedown = true;
         mx = event.clientX;
         my = event.clientY;
-        gl.readPixels(mx, my, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        gl.readPixels(mx-canvas.offsetLeft, my-canvas.offsetTop, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        console.log(pixels);
+        console.log(canvas.offsetLeft);
         
     }
 
@@ -277,8 +283,9 @@ function trans(sx, sy) {
     	//rotate
     	if(mousedown && event.ctrlKey) {
     		//console.log("move");
-    	  	angleX = (event.clientX - mx)/100;//+ event.clientX;
-    	  	angleY = (event.clientY - my)/100;
+    	  	angleX = -(event.clientX - mx)/100 + angxold;//+ event.clientX;
+    	  	angleY = (event.clientY - my)/100 + angyold;
+
     	  }
     	  //translate
 
@@ -300,25 +307,28 @@ function trans(sx, sy) {
     	  	}
 
     	  }
+    	  //Transformation Matrices
+    	  	//Translate
     	  		var translate = math.matrix( 
 				 [[1,		0, 	0, 		0],
 			  [	   0,  		1, 	0,   	0],
 			  [	   0, 		0, 	1, 		0],
 			  [	   transx,	 	transy, 	transz, 		1]]);
 
-
+    	  		//Scale
 			var scale_mat = math.matrix(
 			[ [    scale,	0, 		0, 			0],
 			  [	   0,  		scale, 	0,  	 	0],
 			  [	   0, 		0, 		scale, 		0],
 			  [	   0,	 	0, 		0, 			1]]);
+			//Rotate in X
     	  	var rotatex = math.matrix(
 			  [ [  1,		0, 					0, 						0],
 			  [	   0,  		Math.cos(angleY),  -Math.sin(angleY),    	0],
 			  [	   0, 		Math.sin(angleY), 	Math.cos(angleY), 		0],
 			  [	   0,	 	0, 					0, 						1]]);
 
-
+    	  	//Rotate in Y
 			var rotatey = math.matrix(
 			[ [  Math.cos(angleX),			0, 		Math.sin(angleX), 	0],
 			  [	   0,  						1,   	0, 				   	0],
@@ -333,23 +343,23 @@ function trans(sx, sy) {
     		worldMatrix[k] = temp_worldMatrix.get([i,j]);
     		k = k + 1;
     	}
-    }
-
+    };
 			gl.uniformMatrix4fv(matWorldUniformLocation, gl.FALSE, worldMatrix);
 	
     	  	gl.clearColor(0.75, 0.85, 0.8, 1.0);
 			gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
 			gl.drawElements(gl.TRIANGLES, boxIndices.length, gl.UNSIGNED_SHORT, 0);
-
-
     }
 
+    //Extend Face
     function extendFace(event) {
-if (mousedown) { 
+if (mousedown && !event.ctrlKey && !event.shiftKey && !event.altKey) { 
+	//get RGB
    		r = (pixels[0]/255).toFixed(2);
 	   	g = (pixels[1]/255).toFixed(2);
 		b = (pixels[2]/255).toFixed(2);
 
+		//Search for RGB values
 		var index = 0;
 		for (var j = 0; j < boxVertices.length/6; j++) {
 		r1 = boxVertices[6*j+3].toFixed(2);
@@ -361,39 +371,78 @@ if (mousedown) {
 				break;
 			}
 		}
+		//Get Box Vertices
 	  	p1 = [boxVertices[index - 3], boxVertices[index - 2], boxVertices[index - 1]];
 		p2 = [boxVertices[index + 3], boxVertices[index + 4], boxVertices[index + 5]];
 		p3 = [boxVertices[index + 9], boxVertices[index + 10], boxVertices[index + 11]];
 		p4 = [boxVertices[index + 15], boxVertices[index + 16], boxVertices[index + 17]];
 
-		var out = normal(p1, p3, p2);
+		//Get Center of Face
+		center[0] = (p1[0] + p2[0] + p3[0] + p4[0])/4;
+		center[1] = (p1[1] + p2[1] + p3[1] + p4[1])/4;
+		center[2] = (p1[2] + p2[2] + p3[2] + p4[2])/4;
 
-    for (var i = 0; i < boxVertices.length/6; ++i) {
+		//Compare Direction Magnitude
+		var out = normal(p1, p2, p3);
+		inCent[0] = center[0] + out[0];
+		outCent[0] = center[0] - out[0];
+		inCent[1] = center[1] + out[1];
+		outCent[1] = center[1] - out[1];
+		inCent[2] = center[2] + out[2];
+		outCent[2] = center[2] - out[2];
+		leng1 = Math.sqrt(Math.pow(inCent[0],2) + Math.pow(inCent[1],2) + Math.pow(inCent[2],2));
+		leng2 = Math.sqrt(Math.pow(outCent[0],2) + Math.pow(outCent[1],2) + Math.pow(outCent[2],2));
+		
+		if(leng1 < leng2) {
+			out[0] = out[0]*-1;
+			out[1] = out[1]*-1;
+			out[2] = out[2]*-1; 
+		}
+
+
+		//Check where mouse is moving to
+		mouse_x = event.clientX;
+		mouse_y = event.clientY;
+		dist1 = -center[0] + mx;
+		dist2 = -center[1] + my;
+		dist3 = mouse_x - center[0];
+		dist4 = mouse_y - center[1];
+		mag_dist1 = Math.sqrt(Math.pow(dist1,2) + Math.pow(dist2,2));
+		mag_dist2 = Math.sqrt(Math.pow(dist3,2) + Math.pow(dist4,2));
+		if(mag_dist1 > mag_dist2) {
+			out[0] = out[0] * -1;
+			out[1] = out[1] * -1;
+			out[2] = out[2] * -1;
+		}
+
+		//Extend vertices 
+		for (var i = 0; i < boxVertices.length/6; ++i) {
 		x = boxVertices[6*i];
 		y = boxVertices[6*i+1];
 		z = boxVertices[6*i+2];
+		dist = Math.sqrt(Math.pow(event.clientX,2) + Math.pow(event.clientY,2));
 	if(x==p1[0] && y==p1[1] && z == p1[2]) {
-		boxVertices[i*6] = boxVertices[i*6] + out[0]*(event.clientX-mx)/2500; 
-		boxVertices[i*6+1] = boxVertices[i*6+1] + out[1]*(event.clientX-mx)/2500; 
-		boxVertices[i*6+2] = boxVertices[i*6+2] + out[2]*(event.clientX-mx)/2500; 
+		boxVertices[i*6] = boxVertices[i*6] + out[0]*(dist)/2500; 
+		boxVertices[i*6+1] = boxVertices[i*6+1] + out[1]*(dist)/2500; 
+		boxVertices[i*6+2] = boxVertices[i*6+2] + out[2]*(dist)/2500; 
 	} else if(x==p2[0] && y==p2[1] && z == p2[2]) {
-		boxVertices[i*6] = boxVertices[i*6] + out[0]*(event.clientX-mx)/2500; 
-		boxVertices[i*6+1] = boxVertices[i*6+1] + out[1]*(event.clientX-mx)/2500; 
-		boxVertices[i*6+2] = boxVertices[i*6+2] + out[2]*(event.clientX-mx)/2500;  
+		boxVertices[i*6] = boxVertices[i*6] + out[0]*(dist)/2500; 
+		boxVertices[i*6+1] = boxVertices[i*6+1] + out[1]*(dist)/2500; 
+		boxVertices[i*6+2] = boxVertices[i*6+2] + out[2]*(dist)/2500;  
 	} else if(x==p3[0] && y==p3[1] && z == p3[2]) {
-		boxVertices[i*6] = boxVertices[i*6] + out[0]*(event.clientX-mx)/2500; 
-		boxVertices[i*6+1] = boxVertices[i*6+1] + out[1]*(event.clientX-mx)/2500; 
-		boxVertices[i*6+2] = boxVertices[i*6+2] + out[2]*(event.clientX-mx)/2500;  
+		boxVertices[i*6] = boxVertices[i*6] + out[0]*(dist)/2500; 
+		boxVertices[i*6+1] = boxVertices[i*6+1] + out[1]*(dist)/2500; 
+		boxVertices[i*6+2] = boxVertices[i*6+2] + out[2]*(dist)/2500;  
 	} else if(x==p4[0] && y==p4[1] && z == p4[2]) {
-		boxVertices[i*6] = boxVertices[i*6] + out[0]*(event.clientX-mx)/2500; 
-		boxVertices[i*6+1] = boxVertices[i*6+1] + out[1]*(event.clientX-mx)/2500; 
-		boxVertices[i*6+2] = boxVertices[i*6+2] + out[2]*(event.clientX-mx)/2500;  
+		boxVertices[i*6] = boxVertices[i*6] + out[0]*(dist)/2500; 
+		boxVertices[i*6+1] = boxVertices[i*6+1] + out[1]*(dist)/2500; 
+		boxVertices[i*6+2] = boxVertices[i*6+2] + out[2]*(dist)/2500;  
 	}
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(boxVertices), gl.STATIC_DRAW);
 }
 }};
 
-
+//Draw
 	gl.clearColor(0.75, 0.85, 0.8, 1.0);
 	gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
 	gl.drawElements(gl.TRIANGLES, boxIndices.length, gl.UNSIGNED_SHORT, 0);
