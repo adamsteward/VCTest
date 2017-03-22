@@ -246,6 +246,7 @@ var x_vec = 0;
 var y_vec = 0;
 var pixels = new Uint8Array(4);
 var mousedown = false;
+var o_dist = 0;
 
 //Mouse Listeners
 	canvas.addEventListener('mousedown', initMove, false);
@@ -273,7 +274,18 @@ mat4.identity(identityMatrix);
         mousedown = true;
         mx = event.clientX;
         my = event.clientY;
-        gl.readPixels(mx-canvas.offsetLeft, my-canvas.offsetTop, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        gl.clearColor(0.75, 0.85, 0.8, 1.0);
+		gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+		gl.drawElements(gl.TRIANGLES, boxIndices.length, gl.UNSIGNED_SHORT, 0);
+		//if (my > 400) {
+		//	o_dist = -2*(my-400);
+		//}
+		//else if (my < 400) {
+		//	o_dist = 2 * (my-400);
+		//}
+        gl.readPixels(mx, my, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+        console.log(mx + ' ' + my);
         console.log(pixels);
         console.log(canvas.offsetLeft);
         
@@ -399,21 +411,20 @@ if (mousedown && !event.ctrlKey && !event.shiftKey && !event.altKey) {
 			out[2] = out[2]*-1; 
 		}
 
-
 		//Check where mouse is moving to
-		mouse_x = event.clientX;
-		mouse_y = event.clientY;
-		dist1 = -center[0] + mx;
-		dist2 = -center[1] + my;
-		dist3 = mouse_x - center[0];
-		dist4 = mouse_y - center[1];
-		mag_dist1 = Math.sqrt(Math.pow(dist1,2) + Math.pow(dist2,2));
-		mag_dist2 = Math.sqrt(Math.pow(dist3,2) + Math.pow(dist4,2));
-		if(mag_dist1 > mag_dist2) {
-			out[0] = out[0] * -1;
-			out[1] = out[1] * -1;
-			out[2] = out[2] * -1;
-		}
+		//mouse_x = event.clientX;
+		//mouse_y = event.clientY;
+		//dist1 = -center[0] + mx;
+		//dist2 = -center[1] + my;
+		//dist3 = mouse_x - center[0];
+		//dist4 = mouse_y - center[1];
+		//mag_dist1 = Math.sqrt(Math.pow(dist1,2) + Math.pow(dist2,2));
+		//mag_dist2 = Math.sqrt(Math.pow(dist3,2) + Math.pow(dist4,2));
+		//if(mag_dist1 > mag_dist2) {
+		//	out[0] = out[0] * -1;
+		//	out[1] = out[1] * -1;
+		//	out[2] = out[2] * -1;
+		//}
 
 		//Extend vertices 
 		for (var i = 0; i < boxVertices.length/6; ++i) {
